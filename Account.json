@@ -1,0 +1,14 @@
+[
+  {
+    "AccountID": 100,
+    "Deposit": 1000
+  },
+  {
+    "AccountID": 200,
+    "Deposit": 2000
+  },
+  {
+    "AccountID": 300,
+    "Deposit": 3000
+  }
+]
