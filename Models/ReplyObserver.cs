@@ -1,5 +1,6 @@
 ﻿using PubSub.BL;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,9 @@ namespace PubSub.Models
     public class ReplyObserver : IObserver<Message>
     {
         private readonly Requester _requester;
-        Dictionary<Guid, TaskCompletionSource<Reply>> _pendingRequests;
+        ConcurrentDictionary<Guid, TaskCompletionSource<Reply>> _pendingRequests;
 
-        public ReplyObserver(Requester requester, Dictionary<Guid, TaskCompletionSource<Reply>> pendingRequests)
+        public ReplyObserver(Requester requester, ConcurrentDictionary<Guid, TaskCompletionSource<Reply>> pendingRequests)
         {
             _requester = requester;
             _pendingRequests = pendingRequests;
@@ -22,10 +23,10 @@ namespace PubSub.Models
         {
             if (message is Reply)
             {
-                if (_pendingRequests.Remove(((Reply)message).RequestID, out TaskCompletionSource<Reply> tcs))
+                if (_pendingRequests.TryRemove(((Reply)message).RequestID, out TaskCompletionSource<Reply> tcs))
                 {
                     ((Reply)message).Success = true;
-                    tcs.SetResult((Reply)message);
+                    tcs.TrySetResult((Reply)message);
                 }
             }
         }

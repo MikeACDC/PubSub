@@ -1,5 +1,6 @@
 ﻿using PubSub.Interfaces;
 using PubSub.Models;
+using System.Collections.Concurrent;
 
 
 namespace PubSub.BL
@@ -7,7 +8,7 @@ namespace PubSub.BL
     public class Requester : IRequester<Request, Reply>
     {
         private readonly PubSubBus _PubSubBus;
-        private Dictionary<Guid, TaskCompletionSource<Reply>> _pendingRequests = new Dictionary<Guid, TaskCompletionSource<Reply>>();
+        private ConcurrentDictionary<Guid, TaskCompletionSource<Reply>> _pendingRequests = new ConcurrentDictionary<Guid, TaskCompletionSource<Reply>>();
 
         public Requester(PubSubBus PubSubBus)
         {
@@ -24,7 +25,7 @@ namespace PubSub.BL
             message.RequestID = Guid.NewGuid();
             TaskCompletionSource<Reply> tcs = new TaskCompletionSource<Reply>();
 
-            _pendingRequests.Add(message.RequestID, tcs);
+            _pendingRequests.TryAdd(message.RequestID, tcs);
 
             // Publish request
             await _PubSubBus.Publish(message, cancellationToken);
