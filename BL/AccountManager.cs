@@ -1,30 +1,35 @@
-﻿using PubSub.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using PubSub.BO;
+using PubSub.Models;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PubSub.BL
 {
     public static class AccountManager
     {
-        public static TReply GetDeposit(TRequest request)
+        public static Reply GetDeposit(Request request)
         {
-            string text = File.ReadAllText(@"../../../Account.json");
-
-            List<BankAccount>? list = JsonSerializer.Deserialize<List<BankAccount>>(text);
-            var listItem = list.FirstOrDefault(l => l.AccountID == request.AccountID);
-
-            Task.Delay(2000).Wait();
-
-            if (listItem != null)
+            try
             {
-                return new TReply { Success = true, ReplyBody = listItem.Deposit.ToString() };
+                string accounts = File.ReadAllText(@"../../../Account.json");
+
+                TerminalRequest terminalRequest = JsonSerializer.Deserialize<TerminalRequest>(request.Content);
+
+                List<BankAccount>? accountsList = JsonSerializer.Deserialize<List<BankAccount>>(accounts);
+                var account = accountsList.FirstOrDefault(l => l.AccountID == terminalRequest.AccountID);
+
+                Task.Delay(2000).Wait();
+
+                if (account != null)
+                {
+                    return new Reply { Success = true, Content = account.Deposit.ToString() };
+                }
+                else
+                    return new Reply { Success = false, Content = "Not found" };
             }
-            else
-                return new TReply { Success = false, ReplyBody = "Not found" };
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
         }
     }
